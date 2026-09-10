@@ -1,0 +1,12 @@
+# Build artifacts
+build/*
+
+# Compiled objects
+*.o
+
+# Executables
+*.out
+
+# Editor/OS files
+*.swp
+*~
