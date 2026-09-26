@@ -76,6 +76,49 @@ int main(void) {
   printf("server listening on port 8080\n");
   printf("client connected!!\n"); 
  */
+
+  /* create a buffer and read client requests */
+  char buffer[4096];
+  ssize_t bytesread;
+
+  bytesread = read(
+    clientfd,
+    buffer,
+    sizeof(buffer)-1
+  );
+
+  if (bytesread == -1) {
+   perror("read() failed!!");
+   close(clientfd);
+   close(serverfd);
+  }
+  /* null terminate the buffer */
+  buffer[bytesread] = '\0';
+
+  printf("\n__________HTTP REQUEST START__________\n");
+  printf("%s", buffer);
+  printf("__________HTTP REQUEST STOPS__________\n");
+  const char *response =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/plain\r\n"
+    "Content-Length: 13\r\n"
+    "\r\n"
+    "Hello, World!";
+
+  if (write(
+       clientfd, 
+       response, 
+       strlen(response)
+     ) ==-1
+  ) 
+  {
+    perror("write() failed!!");
+    close(clientfd);
+    close(serverfd);
+    return 1;
+  }
+  printf("HTTP Response Sent..\n");
+
   close(clientfd);
   close(serverfd);
 
