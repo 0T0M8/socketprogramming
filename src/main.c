@@ -32,11 +32,18 @@ int main(void) {
      ) == -1
   )
   { perror("bind failed()!!"); return 1; }
-  
- 
+
+  /* listen for incomming connections */
+  if (listen(serverfd, 10) == -1) {
+    perror("listen() failed!!");
+    return 1;
+    close(serverfd);
+  }
+
   printf("\nSocket created successfully!!\n");
   printf("serverfd: %d\n", serverfd);
   printf("socket bound to port 8080\n");
+  printf("server listening on port 8080\n");
 
   close(serverfd);
 
