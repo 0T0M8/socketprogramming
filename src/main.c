@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <string.h>
 
 int main(void) {
 
@@ -40,8 +41,8 @@ int main(void) {
   /* listen for incomming connections */
   if (listen(serverfd, 10) == -1) {
     perror("listen() failed!!");
-    return 1;
     close(serverfd);
+    return 1;
   }
 
   printf("server listening on port 8080\n");
@@ -94,7 +95,6 @@ int main(void) {
   if (bytesread == -1) {
    perror("read() failed!!");
    close(clientfd);
-   close(serverfd);
   }
   /* null terminate the buffer */
   buffer[bytesread] = '\0';
@@ -102,12 +102,55 @@ int main(void) {
   printf("\n__________HTTP REQUEST START__________\n");
   printf("%s", buffer);
   printf("__________HTTP REQUEST STOPS__________\n");
-  const char *response =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/plain\r\n"
-    "Content-Length: 13\r\n"
-    "\r\n"
-    "Hello, World!";
+
+  /* extract http method and path */
+ 
+  char method[16]; // GET POST
+  char path[256];  // /   /static
+
+  int fields = sscanf(
+       buffer,
+       "%15s %255s",
+       method,
+       path
+  );
+  if (fields != 2) {
+   printf("Invalid HTTP request\n");
+   close(clientfd);
+   continue;
+  }
+  
+  printf("\nPARSED HTTP REQUEST\n");
+  printf("Method: %s\n", method);
+  printf("Path: %s\n", path);
+
+  printf("-----------------------------\n");
+
+  const char *response;
+
+  if (strcmp(path, "/") ==0) {
+    response =
+      "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/plain\r\n"
+      "Content-Length: 13\r\n"
+      "\r\n"
+      "Hello, World!";
+  } else if (strcmp(path, "/hello") == 0) {
+      response = 
+        "HTTP/1.0 200 OK\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Length: 18\r\n" 
+        "\r\n"
+        "Hello, from /hello";
+    } else {
+       /* code for 404 in milestone 11 */
+        response = 
+          "HTTP/1.0 200 OK\r\n"
+          "Content-Type: text/plain\r\n"
+          "Content-Length: 13\r\n"
+          "\r\n"
+          "Hello, world!";
+      } //close else
 
   if (write(
        clientfd, 
