@@ -51,7 +51,11 @@ int main(void) {
      calculate it's size using sizeof()
      pass its inaddr as a pointer for the kernel
      accept incomming connections
+     initialize an infinite loop to for multiple clients
    */
+
+ while (1) 
+ {
    struct sockaddr_in clientaddr = {0};
    socklen_t addrlen = sizeof(clientaddr);
    
@@ -119,7 +123,12 @@ int main(void) {
   }
   printf("HTTP Response Sent..\n");
 
+  printf("Client disconnected...\n");
+  printf("Waiting for another client...\n");
+
   close(clientfd);
+} /* end of infinite loop */
+
   close(serverfd);
 
   return 0;
