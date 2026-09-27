@@ -156,6 +156,7 @@ int main(void) {
     "HTTP/1.1 %s\r\n"
     "Content-Type: text/plain\r\n"
     "Content-Length: %zu\r\n"
+    "Connection: close\r\n"
     "\r\n"
     "%s",
     status,
