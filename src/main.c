@@ -131,16 +131,20 @@ int main(void) {
    * it prints to the response string
    * instead of the terminal like printf
    */
+  const char *status;
   const char *body;
 
   if (strcmp(path, "/") == 0) {
+    status = "200 OK";
     body = "Hello, World!";
   }
   else if (strcmp(path, "/hello") == 0) {
+    status = "200 OK";
     body = "Hello, from /hello";
   }
   else {
-    body = "Hello, world!";
+    status = "404 Not Found";
+    body = "Not Found";
   }
   
   size_t body_length = strlen(body);
@@ -149,11 +153,12 @@ int main(void) {
   int response_length = snprintf(
     response,
     sizeof(response),
-    "HTTP/1.1 200 OK\r\n"
+    "HTTP/1.1 %s\r\n"
     "Content-Type: text/plain\r\n"
     "Content-Length: %zu\r\n"
     "\r\n"
     "%s",
+    status,
     body_length,
     body
   );
