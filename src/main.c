@@ -126,36 +126,42 @@ int main(void) {
 
   printf("-----------------------------\n");
 
-  const char *response;
+  /*
+   * smart routing using snprintf
+   * it prints to the response string
+   * instead of the terminal like printf
+   */
+  const char *body;
 
-  if (strcmp(path, "/") ==0) {
-    response =
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/plain\r\n"
-      "Content-Length: 13\r\n"
-      "\r\n"
-      "Hello, World!";
-  } else if (strcmp(path, "/hello") == 0) {
-      response = 
-        "HTTP/1.0 200 OK\r\n"
-        "Content-Type: text/plain\r\n"
-        "Content-Length: 18\r\n" 
-        "\r\n"
-        "Hello, from /hello";
-    } else {
-       /* code for 404 in milestone 11 */
-        response = 
-          "HTTP/1.0 200 OK\r\n"
-          "Content-Type: text/plain\r\n"
-          "Content-Length: 13\r\n"
-          "\r\n"
-          "Hello, world!";
-      } //close else
+  if (strcmp(path, "/") == 0) {
+    body = "Hello, World!";
+  }
+  else if (strcmp(path, "/hello") == 0) {
+    body = "Hello, from /hello";
+  }
+  else {
+    body = "Hello, world!";
+  }
+  
+  size_t body_length = strlen(body);
+  char response[4096];
+   
+  int response_length = snprintf(
+    response,
+    sizeof(response),
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/plain\r\n"
+    "Content-Length: %zu\r\n"
+    "\r\n"
+    "%s",
+    body_length,
+    body
+  );
 
   if (write(
        clientfd, 
        response, 
-       strlen(response)
+       response_length
      ) ==-1
   ) 
   {
@@ -174,5 +180,6 @@ int main(void) {
 
   close(serverfd);
 
+  printf("\n");
   return 0;
 }
