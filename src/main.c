@@ -137,7 +137,7 @@ int main(void) {
   const char *content_type = "text/plain";
 
   char file_buffer[4096];
-  size_t body_length;
+  ssize_t body_length;
 
   int filefd = -1;
 
@@ -153,11 +153,11 @@ int main(void) {
   }
   
   else if (strcmp(path, "/index.html") == 0) {
-    int filefd = open("public/index.html", O_RDONLY);
+    filefd = open("public/index.html", O_RDONLY);
 
       if (filefd == -1) {
         printf("file open() failed!!");
-        status = "404 Not Found\n",
+        status = "404 Not Found\n";
         body_length = strlen(body);
       } 
       else {
@@ -178,7 +178,7 @@ int main(void) {
          }
          else {
            status = "200 OK";
-           body = "file_buffer";
+           body = file_buffer;
            content_type = "text/html";
          } /*×××××××××××××××××××××××××*/
       } // else
@@ -195,12 +195,13 @@ int main(void) {
     response,
     sizeof(response),
     "HTTP/1.1 %s\r\n"
-    "Content-Type: text/plain\r\n"
-    "Content-Length: %zu\r\n"
+    "Content-Type: %s\r\n"
+    "Content-Length: %zd\r\n"
     "Connection: close\r\n"
     "\r\n"
     "%s",
     status,
+    content_type,
     body_length,
     body
   );
@@ -214,7 +215,7 @@ int main(void) {
   ) 
   {
     perror("write() headers failed!!");
-    if (filefd == -1) {
+    if (filefd != -1) {
       close(filefd);
     }
 
@@ -230,7 +231,7 @@ int main(void) {
      ) == -1 )
   {
     perror("write() body failed!!");
-    if (filefd == -1) {
+    if (filefd != -1) {
       close(filefd);
     }
   
