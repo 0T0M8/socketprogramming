@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -132,22 +133,62 @@ int main(void) {
    * instead of the terminal like printf
    */
   const char *status;
-  const char *body;
+  const char *body = NULL;
+  const char *content_type = "text/plain";
+
+  char file_buffer[4096];
+  size_t body_length;
+
+  int filefd = -1;
 
   if (strcmp(path, "/") == 0) {
     status = "200 OK";
-    body = "Hello, World!";
+    body = "Hello, World!\n";
+    body_length = strlen(body); 
   }
   else if (strcmp(path, "/hello") == 0) {
     status = "200 OK";
-    body = "Hello, from /hello";
-  }
-  else {
-    status = "404 Not Found";
-    body = "Not Found";
+    body = "Hello, from /hello\n";
+    body_length = strlen(body);
   }
   
-  size_t body_length = strlen(body);
+  else if (strcmp(path, "/index.html") == 0) {
+    int filefd = open("public/index.html", O_RDONLY);
+
+      if (filefd == -1) {
+        printf("file open() failed!!");
+        status = "404 Not Found\n",
+        body_length = strlen(body);
+      } 
+      else {
+        /* read file into memory */
+        body_length = read(
+          filefd,
+          file_buffer,
+          sizeof(file_buffer)
+        );
+
+         if (body_length == -1) {
+           perror("read() file failed!!");
+           close(filefd); /******************/
+           filefd = -1;
+           status = "Internal Server Error";
+           body = "Internal Server Error\n";
+           body_length = strlen(body);
+         }
+         else {
+           status = "200 OK";
+           body = "file_buffer";
+           content_type = "text/html";
+         } /*×××××××××××××××××××××××××*/
+      } // else
+  } //else if "/index.html"
+  else {
+    status = "404 Not Found";
+    body = "Not Found\n";
+    body_length = strlen(body);
+  } 
+
   char response[4096];
    
   int response_length = snprintf(
@@ -163,7 +204,8 @@ int main(void) {
     body_length,
     body
   );
-
+  
+  /* send http headers */
   if (write(
        clientfd, 
        response, 
@@ -171,11 +213,39 @@ int main(void) {
      ) ==-1
   ) 
   {
-    perror("write() failed!!");
+    perror("write() headers failed!!");
+    if (filefd == -1) {
+      close(filefd);
+    }
+
     close(clientfd);
-    close(serverfd);
-    return 1;
+    continue;
   }
+
+  /* send http body */
+  if (write(
+       clientfd,
+       body,
+       body_length
+     ) == -1 )
+  {
+    perror("write() body failed!!");
+    if (filefd == -1) {
+      close(filefd);
+    }
+  
+    close(clientfd);
+    continue;
+  }
+
+  /* close the file if one was open */
+  if (filefd != -1) {
+   close(filefd);
+  }
+
+  /* send http body */
+  
+
   printf("HTTP Response Sent..\n");
 
   printf("Client disconnected...\n");
