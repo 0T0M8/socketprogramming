@@ -96,6 +96,7 @@ int main(void) {
   if (bytesread == -1) {
    perror("read() failed!!");
    close(clientfd);
+   continue;
   }
   /* null terminate the buffer */
   buffer[bytesread] = '\0';
@@ -156,8 +157,9 @@ int main(void) {
     filefd = open("public/index.html", O_RDONLY);
 
       if (filefd == -1) {
-        printf("file open() failed!!");
+        perror("file open() failed!!");
         status = "404 Not Found\n";
+        body = "Not Found\n";
         body_length = strlen(body);
       } 
       else {
